@@ -1,6 +1,6 @@
 ## About
-This repo showcases how to query the graph from the frontend using `react-query`.
-The subgraph used for this is from [Opensea](https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea).
+This repo showcases how to generate fully typed queries for [The Graph](https://thegraph.com/) using [react-query](https://tanstack.com/query/v3/) and [graphql codegen](https://the-guild.dev/graphql/codegen).
+The subgraph used for this project is from [Opensea](https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea).
 
 ## Steps
 
