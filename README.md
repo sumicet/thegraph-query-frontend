@@ -1,18 +1,22 @@
-### About
+## About
 This repo showcases how to query the graph from the frontend using `react-query`.
 The subgraph used for this is from
 [Opensea](https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea).
 
-### Steps
+## Steps
 
-1.
+1. Install dependencies.
 ```
-npm i graphql
+npm i graphql @tanstack/react-query
 npm i -D @graphql-codegen/cli @graphql-codegen/typescript-resolvers @graphql-codegen/typescript-operations @graphql-codegen/typescript-react-query @graphql-codegen/named-operations-object
 ```
 
-2. `npx graphql-code-generator init`
-The schema is inside the `config.ts` file.
+2. Set up `react-query` as specified in the [docs](https://tanstack.com/query/v4/docs/react/quick-start).
+
+3. Initialize the code generator.
+```
+npx graphql-code-generator init
+```
 ```
 ? What type of application are you building? Application built with React
 ? Where is your schema?: (path or url) https://api.thegraph.com/subgraphs/name/itsjerryokolo/opensea
@@ -23,15 +27,7 @@ The schema is inside the `config.ts` file.
 ? What script in package.json should run the codegen? codegen
 ```
 
-3. Inside `codegen.ts` change
-```
-generates: {
-    'src/gql/': {
-        preset: 'client',
-        plugins: [],
-    },
-},
-```
+4. Inside `codegen.ts`, replace the `generates` object with:
 to
 ```
 generates: {
@@ -50,9 +46,48 @@ generates: {
 },
 ```
 
-4. Build a custom fetcher inside the `gql` folder.
+5. Add `gql/fetcher.ts`, a custom fetcher that handles errors from The Graph and formats the query to prevent errors.
 
-5. Add `gql/queries/sales.graphql`.
+```
+export const fetchData = <TData, TVariables>(
+    query: string,
+    variables?: TVariables,
+    options?: RequestInit['headers']
+): (() => Promise<TData>) => {
+    return async () => {
+        /**
+         * Remove the first and last `\n    ` from the query string. Not doing
+         * this will cause the query to fail.
+         */
+        const finalQuery =
+            query.startsWith('\n    ') && query.endsWith('\n    ') ? query.slice(5, -5) : query;
+
+        const res = await fetch(config.subgraphUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...options,
+            },
+            body: JSON.stringify({
+                query: finalQuery,
+                variables,
+            }),
+        });
+
+        const json = await res.json();
+
+        if (json.errors) {
+            const { message } = json.errors[0] || {};
+            const updatedMessage = message || 'Something went wrong. Please try again.';
+            throw new Error(updatedMessage);
+        }
+
+        return json.data;
+    };
+};
+```
+
+6. Add `gql/queries/sales.graphql`.
 
 ```
 query GetSales(
@@ -86,19 +121,95 @@ query GetSales(
 
 ```
 
-The argument types for GetSales were copied from
-https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea ->
-Playground -> Show documentation explorer -> `query: Query` -> Scroll down to
-sales
+The argument types for `GetSales` were copied from
+https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea -> `Playground`
+-> `Show documentation explorer` -> `query: Query` -> Scroll down to
+`sales`.
 
-6. Run the codegen command.
+7. Run the `codegen` command.
 
-`npm run codegen`
+```
+npm run codegen
+```
 
 You should see the output inside `gql/generated/index.ts`
 
-### Usage
+## Usage
 
 ```
 const { data, isLoading } = useGetSalesQuery();
+```
+
+## Generating infinite queries
+
+Normally, the solution would be pretty simple:
+Inside `codegen.ts`
+```
+generates: {
+    'src/gql/generated/index.ts': {
+        plugins: ...,
+        config: {
+            fetcher: '../fetcher#fetchData',
+            addInfiniteQuery: true
+        }
+    },
+},
+```
+
+At the time of writing (June 2023), there's an open issue that prevents
+addInfiniteQuery to generate correct queries. See [`[typescript react-query] unused pageParamKey when calling useInfiniteQuery.`](https://github.com/dotansimha/graphql-code-generator-community/issues/174).
+
+#### Workaround
+Create `gql/infiniteQueries.ts`.
+
+```
+export const useGraphQLInfinite = <TData, TVariables = unknown, TError = unknown>(
+    pageParamKey: keyof TVariables,
+    queryKey: QueryKey,
+    document: string,
+    variables?: TVariables,
+    options?: UseInfiniteQueryOptions<TData, TError>
+) => {
+    return useInfiniteQuery<TData, TError, TData>(
+        queryKey,
+        metadata =>
+            fetchData<TData, TVariables>(document, {
+                ...variables,
+                ...((metadata ? { [pageParamKey]: metadata.pageParam } : {}) as TVariables),
+            })(),
+        options
+    );
+};
+
+export const useInfiniteGetSalesQuery = (
+    pageParamKey: keyof GetSalesQueryVariables,
+    variables?: GetSalesQueryVariables,
+    options?: UseInfiniteQueryOptions<GetSalesQuery>
+) => {
+    return useGraphQLInfinite<GetSalesQuery, GetSalesQueryVariables>(
+        pageParamKey,
+        variables === undefined ? ['GetSales.infinite'] : ['GetSales.infinite', variables],
+        GetSalesDocument,
+        variables,
+        options
+    );
+};
+```
+
+##### Usage
+
+```
+const limit = 10;
+const { data, isLoading, fetchNextPage } = useInfiniteGetSalesQuery(
+    'skip',
+    {
+        first: limit,
+    },
+    {
+        keepPreviousData: true,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.sales.length >= limit ? allPages.length * limit : undefined,
+    }
+);
+const sales = data?.pages?.map(page => page.sales).flat();
 ```

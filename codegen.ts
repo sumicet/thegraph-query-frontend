@@ -19,6 +19,12 @@ const config: CodegenConfig = {
             ],
             config: {
                 fetcher: '../fetcher#fetchData',
+                /**
+                 * Bug: https://github.com/dotansimha/graphql-code-generator-community/issues/174.
+                 * This doesn't generate a well written query. It doesn't use the pageParamKey param.
+                 * Once it's fixed, uncomment the line below and remove the `infiniteQueries.ts` file.
+                 */
+                // addInfiniteQuery: true
             },
         },
     },

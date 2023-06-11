@@ -9,6 +9,10 @@ export const fetchData = <TData, TVariables>(
     options?: RequestInit['headers']
 ): (() => Promise<TData>) => {
     return async () => {
+        /**
+         * Remove the first and last `\n    ` from the query string. Not doing
+         * this will cause the query to fail.
+         */
         const finalQuery =
             query.startsWith('\n    ') && query.endsWith('\n    ') ? query.slice(5, -5) : query;
 
