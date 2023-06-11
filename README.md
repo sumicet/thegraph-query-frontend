@@ -207,3 +207,7 @@ const { data, isLoading, fetchNextPage } = useInfiniteGetSalesQuery(
 );
 const sales = data?.pages?.map(page => page.sales).flat();
 ```
+
+## Optional: Pagination
+
+You can read about this [here](https://tanstack.com/query/v4/docs/react/guides/paginated-queries#better-paginated-queries-with-keeppreviousdata).
