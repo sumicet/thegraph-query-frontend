@@ -1,35 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useGetSalesQuery } from './gql';
 
-function App() {
-  const [count, setCount] = useState(0)
+function Content() {
+    const { data, isLoading } = useGetSalesQuery();
+    if (isLoading) return <p>Loading...</p>;
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    return (
+        <table>
+            <tr>
+                <th>Price</th>
+                <th>Buyer Address</th>
+                <th>Seller Address</th>
+            </tr>
+            {data?.sales.map(sale => (
+                <tr key={sale.txHash}>
+                    <td>{sale.price}</td>
+                    <td>{sale.buyer.id}</td>
+                    <td>{sale.seller.id}</td>
+                </tr>
+            ))}
+        </table>
+    );
 }
 
-export default App
+function App() {
+    return (
+        <div
+            style={{
+                display: 'flex',
+                width: '100%',
+                height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <Content />
+        </div>
+    );
+}
+
+export default App;

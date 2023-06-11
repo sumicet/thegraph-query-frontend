@@ -1,0 +1,28 @@
+query GetSales(
+    $skip: Int = 0
+    $first: Int = 100
+    $orderBy: Sale_orderBy
+    $orderDirection: OrderDirection
+    $where: Sale_filter
+    $block: Block_height
+    $subgraphError: _SubgraphErrorPolicy_! = deny
+) {
+    sales(
+        skip: $skip
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+        subgraphError: $subgraphError
+    ) {
+        txHash
+        buyer {
+            id
+        }
+        seller {
+            id
+        }
+        price
+    }
+}
