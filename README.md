@@ -1,7 +1,6 @@
 ## About
 This repo showcases how to query the graph from the frontend using `react-query`.
-The subgraph used for this is from
-[Opensea](https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea).
+The subgraph used for this is from [Opensea](https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea).
 
 ## Steps
 
@@ -28,7 +27,6 @@ npx graphql-code-generator init
 ```
 
 4. Inside `codegen.ts`, replace the `generates` object with:
-to
 ```
 generates: {
     'src/gql/generated/index.ts': {
@@ -121,10 +119,7 @@ query GetSales(
 
 ```
 
-The argument types for `GetSales` were copied from
-https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea -> `Playground`
--> `Show documentation explorer` -> `query: Query` -> Scroll down to
-`sales`.
+The argument types for `GetSales` were copied from https://thegraph.com/hosted-service/subgraph/itsjerryokolo/opensea -> `Playground` -> `Show documentation explorer` -> `query: Query` -> Scroll down to `sales`.
 
 7. Run the `codegen` command.
 
@@ -140,7 +135,7 @@ You should see the output inside `gql/generated/index.ts`
 const { data, isLoading } = useGetSalesQuery();
 ```
 
-## Generating infinite queries
+## Optional: Generating infinite queries
 
 Normally, the solution would be pretty simple:
 Inside `codegen.ts`
@@ -156,8 +151,7 @@ generates: {
 },
 ```
 
-At the time of writing (June 2023), there's an open issue that prevents
-addInfiniteQuery to generate correct queries. See [`[typescript react-query] unused pageParamKey when calling useInfiniteQuery.`](https://github.com/dotansimha/graphql-code-generator-community/issues/174).
+At the time of writing (June 2023), there's an open issue that prevents `addInfiniteQuery` to generate correct queries. See [`[typescript react-query] unused pageParamKey when calling useInfiniteQuery.`](https://github.com/dotansimha/graphql-code-generator-community/issues/174).
 
 #### Workaround
 Create `gql/infiniteQueries.ts`.

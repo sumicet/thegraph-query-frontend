@@ -3,7 +3,9 @@ import { useGetSalesQuery, useInfiniteGetSalesQuery } from './gql';
 const limit = 10;
 
 function Content() {
-    const { data, isLoading } = useGetSalesQuery();
+    const { data, isLoading } = useGetSalesQuery({
+        first: 100,
+    });
     const sales = data?.sales;
 
     // Infinite query example
@@ -24,18 +26,22 @@ function Content() {
 
     return (
         <table>
-            <tr>
-                <th>Price</th>
-                <th>Buyer Address</th>
-                <th>Seller Address</th>
-            </tr>
-            {sales?.map(sale => (
-                <tr key={sale.txHash}>
-                    <td>{sale.price}</td>
-                    <td>{sale.buyer.id}</td>
-                    <td>{sale.seller.id}</td>
+            <thead>
+                <tr>
+                    <th>Price</th>
+                    <th>Buyer Address</th>
+                    <th>Seller Address</th>
                 </tr>
-            ))}
+            </thead>
+            <tbody>
+                {sales?.map(sale => (
+                    <tr key={sale.txHash}>
+                        <td>{sale.price}</td>
+                        <td>{sale.buyer.id}</td>
+                        <td>{sale.seller.id}</td>
+                    </tr>
+                ))}
+            </tbody>
             {/* <button onClick={() => fetchNextPage()}>Load more</button> */}
         </table>
     );
